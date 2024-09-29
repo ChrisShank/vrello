@@ -42,7 +42,9 @@ export function renderCard({ id, name, description }) {
   on-dragleave="DRAG_LEAVING_CARD"
   on-drop="DROPPING_ON_CARD"
   on-keyup.ArrowUp="MOVE_CARD_UP"
+  on-keyup.shift.ArrowUp="MOVE_CARD_TO_TOP"
   on-keyup.ArrowDown="MOVE_CARD_DOWN"
+  on-keyup.shift.ArrowDown="MOVE_CARD_TO_BOTTOM"
   on-keyup.ArrowRight="MOVE_CARD_RIGHT"
   on-keyup.ArrowLeft="MOVE_CARD_LEFT"
 >

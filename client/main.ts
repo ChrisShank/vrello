@@ -137,11 +137,24 @@ class KanbanBoard extends ProgressiveElement {
         target.focus();
         return;
       }
+      case 'MOVE_CARD_TO_TOP': {
+        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+
+        target.parentElement?.firstElementChild?.insertAdjacentElement('beforebegin', target);
+        target.focus();
+        return;
+      }
       case 'MOVE_CARD_DOWN': {
         if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
 
-        const sibling = closestSibling(target, ':not([hidden])', 'after');
-        sibling?.insertAdjacentElement('afterend', target);
+        closestSibling(target, ':not([hidden])', 'after')?.insertAdjacentElement('afterend', target);
+        target.focus();
+        return;
+      }
+      case 'MOVE_CARD_TO_BOTTOM': {
+        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+
+        target.parentElement?.lastElementChild?.insertAdjacentElement('afterend', target);
         target.focus();
         return;
       }

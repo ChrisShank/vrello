@@ -22,12 +22,19 @@ body {
   --bgColor-emphasis: #3d444d;
   --overlay-bgColor: #151b23;
   --borderColor-default: #3d444d;
+  --bgColor-accent-emphasis: #1f6feb;
   --transparent-bgColor-hover: #656c7633;
   --fgColor-muted: #9198a1;
   --bgColor-accent-emphasis: #1f6feb;
 
   color: #f0f6fc;
   background-color: var(--bgColor-default);
+}
+
+:focus-visible {
+  outline: none;
+  border-color: var(--bgColor-accent-emphasis);
+  box-shadow: 0 0 0 1px var(--bgColor-accent-emphasis);
 }
 
 header {
@@ -57,21 +64,22 @@ textarea {
   resize: none;
 
   &:not(:focus) {
-    max-height: 4lh;
+    max-height: 6lh;
   }
 }
 
 input,
 textarea {
   background-color: transparent;
-  border: unset;
+  border: 1px solid transparent;
+  border-radius: 6px;
   color: inherit;
   padding: 0.25rem;
 }
 
 button {
   background-color: transparent;
-  border: unset;
+  border: 1px solid transparent;
   border-radius: 6px;
   color: var(--fgColor-muted);
   font-size: 18px;
@@ -176,6 +184,10 @@ kanban-column {
     padding: 8px 16px 4px;
     overflow-y: auto;
     scroll-padding-bottom: 7px;
+  }
+
+  > button {
+    text-align: center;
   }
 }
 
