@@ -1,24 +1,4 @@
-export type UUID = ReturnType<Crypto['randomUUID']>;
-
-export interface Card {
-  id: UUID;
-  name: string;
-  description: string;
-}
-
-export interface Column {
-  id: UUID;
-  name: string;
-  cards: Card[];
-}
-
-export interface Board {
-  id: UUID;
-  name: string;
-  columns: Column[];
-}
-
-export function renderBoard({ id, name, columns }: Board) {
+export function renderBoard({ id, name, columns }) {
   return `
 <kanban-board data-id="${id}">
   <h2><input value="${name}" on-change="UPDATE_BOARD_NAME" /></h2>
@@ -28,7 +8,7 @@ export function renderBoard({ id, name, columns }: Board) {
 </kanban-board>`;
 }
 
-export function renderColumn({ id, name, cards }: Column) {
+export function renderColumn({ id, name, cards }) {
   return `
 <kanban-column 
   role="listitem" 
@@ -46,7 +26,7 @@ export function renderColumn({ id, name, cards }: Column) {
 </kanban-column>`;
 }
 
-export function renderCard({ id, name, description }: Card) {
+export function renderCard({ id, name, description }) {
   return `
 <kanban-card 
   role="listitem" data-id="${id}" 
