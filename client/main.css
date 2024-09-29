@@ -1,0 +1,204 @@
+html {
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui;
+  font-optical-sizing: auto;
+  font-style: normal;
+  height: 100%;
+  margin: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  --bgColor-default: #0d1117;
+  --bgColor-muted: #151b23;
+  --bgColor-inset: #010409;
+  --bgColor-emphasis: #3d444d;
+  --overlay-bgColor: #151b23;
+  --borderColor-default: #3d444d;
+  --transparent-bgColor-hover: #656c7633;
+  --fgColor-muted: #9198a1;
+  --bgColor-accent-emphasis: #1f6feb;
+
+  color: #f0f6fc;
+  background-color: var(--bgColor-default);
+}
+
+header {
+  background-color: var(--bgColor-inset);
+  border-bottom: solid 1px var(--borderColor-default);
+  padding: 8px 16px;
+
+  h1 {
+    font-size: 20px;
+    margin: 0;
+  }
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+textarea {
+  field-sizing: content;
+  resize: none;
+
+  &:not(:focus) {
+    max-height: 4lh;
+  }
+}
+
+input,
+textarea {
+  background-color: transparent;
+  border: unset;
+  color: inherit;
+  padding: 0.25rem;
+}
+
+button {
+  background-color: transparent;
+  border: unset;
+  border-radius: 6px;
+  color: var(--fgColor-muted);
+  font-size: 18px;
+  padding: 8px 8px;
+  text-align: left;
+
+  &:hover {
+    background-color: var(--transparent-bgColor-hover);
+  }
+}
+
+kanban-board {
+  display: grid;
+  flex: 1;
+  grid-template-areas:
+    'heading heading'
+    'filter add-column'
+    'columns columns';
+  grid-template-rows: auto auto 1fr;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  min-height: 0; /* Makes the columns overflow if there are too many cards. */
+  padding: 1rem;
+
+  > h2 {
+    grid-area: heading;
+    margin: 0;
+
+    input {
+      font-size: 22px;
+    }
+  }
+
+  > label {
+    grid-area: filter;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    input {
+      border: solid 1px var(--borderColor-default);
+      border-radius: 6px;
+      flex: 1;
+    }
+  }
+
+  > ul {
+    grid-area: columns;
+    flex: 1;
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+  }
+
+  > button {
+    grid-area: add-column;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+kanban-column {
+  background-color: var(--bgColor-inset);
+  border: solid 1px var(--borderColor-default);
+  border-radius: 6px;
+  cursor: move;
+  display: flex;
+  flex-direction: column;
+  min-width: 350px;
+  overflow-y: auto;
+  position: relative;
+  width: 350px;
+
+  &:state(dragging) {
+    opacity: 0.5;
+  }
+
+  &:state(accept-card) {
+    border: 2px solid var(--bgColor-accent-emphasis);
+  }
+
+  &:state(accept-column-right) {
+    border-width: 2px;
+    border-right-color: var(--bgColor-accent-emphasis);
+  }
+
+  &:state(accept-column-left) {
+    border-width: 2px;
+    border-left-color: var(--bgColor-accent-emphasis);
+  }
+
+  > input {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 8px 16px 4px;
+  }
+
+  > ul {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 8px;
+    padding: 8px 16px 4px;
+    overflow-y: auto;
+    scroll-padding-bottom: 7px;
+  }
+}
+
+kanban-card {
+  background-color: var(--overlay-bgColor);
+  border: solid 1px var(--borderColor-default);
+  border-radius: 6px;
+  cursor: move;
+  padding: 8px 12px 12px;
+
+  &:state(dragging) {
+    opacity: 0.5;
+  }
+
+  &:state(accept-card-above) {
+    border-top: 2px solid var(--bgColor-accent-emphasis);
+  }
+
+  &:state(accept-card-below) {
+    border-bottom: 2px solid var(--bgColor-accent-emphasis);
+  }
+
+  button {
+    font-size: 12px;
+  }
+
+  textarea {
+    width: 100%;
+  }
+}

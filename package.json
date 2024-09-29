@@ -1,0 +1,16 @@
+{
+  "name": "vrello",
+  "type": "module",
+  "private": true,
+  "description": "a vanilla trello",
+  "scripts": {
+    "dev": "node server/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "express": "^4.21.0",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8"
+  }
+}
