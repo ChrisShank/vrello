@@ -1,104 +1,5 @@
-/**
- * Given a DOM event this utility function finds the closest intention. An intention is a DOM attribute that maps a DOM event to a semantically meaningful event. The attribute takes the shape `${prefix}${event.type}${modifiers?}="${semantic event}"`.
- * @param event DOM event
- * @param modifier A function that adds a modifier to the intention. Useful for keyboard modifiers.
- * @param prefix By default intentions are prefixed with `on:`, use this to override that prefix.
- * @returns
- */
-function findClosestIntention(event) {
-  if (event.target instanceof Element) {
-    const attributeName = `on:${event.type}`;
-    const target = event.target.closest(`[${attributeName}]`);
-    if (target !== null) {
-      const intention = target.getAttribute(attributeName);
-      return { intention, target };
-    }
-  }
-
-  return {};
-}
-
-class ProgressiveElement extends HTMLElement {
-  static tagName = '';
-
-  /**
-   * Register the custom element with the window. By default then name of the custom element is the kebab-case of the class name.
-   */
-  static register() {
-    customElements.define(this.tagName, this);
-  }
-
-  /**
-   * A list of event types to be delegated for the lifetime of the custom element.
-   */
-  static delegatedEvents;
-
-  constructor() {
-    super();
-
-    const constructor = this.constructor;
-    constructor.delegatedEvents?.forEach((event) => this.addEventListener(event, this));
-  }
-
-  /**
-   * This method is called any time an event is delegated. It's a central handler to handle events for this custom element. No need to call `super.handleEvent()`.
-   * @param event
-   */
-  handleEvent(event) {}
-}
-
-const parser = new DOMParser();
-function parseHTML(html) {
-  return document.createRange().createContextualFragment(html).firstElementChild;
-}
-
-function renderBoard({ id, name, columns }) {
-  return `
-<kanban-board data-id="${id}">
-  <h2><input value="${name}" on:change="UPDATE_BOARD_NAME" /></h2>
-  <label for="filter">Filter: <input value="" name="filter" id="filter" on:input="FILTER_CARDS" /></label>
-  <button on:click="ADD_COLUMN">Add Column</button>
-  <ul>${columns.map((column) => renderColumn(column)).join('')}</ul>
-</kanban-board>`;
-}
-
-function renderColumn({ id, name, cards }) {
-  return `
-<kanban-column 
-  role="listitem" 
-  data-id="${id}" 
-  draggable="true" 
-  on:dragstart="START_DRAGGING_COLUMN" 
-  on:dragend="STOP_DRAGGING_COLUMN"
-  on:dragover="DRAGGING_OVER_COLUMN"
-  on:dragleave="DRAG_LEAVING_COLUMN"
-  on:drop="DROPPING_ON_COLUMN"
-  >
-  <input value="${name}" name="name" on:change="UPDATE_COLUMN_NAME" />
-  <ul>${cards.map((card) => renderCard(card)).join('')}</ul>
-  <button on:click="ADD_CARD">Add Item</button>
-</kanban-column>`;
-}
-
-function renderCard({ id, name, description }) {
-  return `
-<kanban-card 
-  role="listitem" data-id="${id}" 
-  draggable="true" 
-  on:dragstart="START_DRAGGING_CARD" 
-  on:dragend="STOP_DRAGGING_CARD"
-  on:dragover="DRAGGING_OVER_CARD"
-  on:dragleave="DRAG_LEAVING_CARD"
-  on:drop="DROPPING_ON_CARD"
->
-  <input value="${name}" />
-  <button on:click="DELETE_CARD">Delete</button>
-  <textarea
-    placeholder="Add a description"
-    on:change="UPDATE_CARD_DESCRIPTION"
-  >${description}</textarea>
-</kanban-card>`;
-}
+import { renderColumn, renderCard, renderBoard, UUID, Card, Column } from '../shared/templates';
+import { findClosestIntention, parseHTML, ProgressiveElement } from './utils';
 
 const CONTENT_TYPES = {
   COLUMN: 'text/kanban-column',
@@ -106,18 +7,18 @@ const CONTENT_TYPES = {
 };
 
 class KanbanBoard extends ProgressiveElement {
-  static tagName = 'kanban-board';
+  static tagName = 'kanban-board' as const;
 
   static delegatedEvents = ['click', 'change', 'input', 'dragstart', 'dragend', 'dragover', 'dragleave', 'drop'];
 
-  #ul = this.querySelector('ul');
+  #ul = this.querySelector('ul')!;
 
-  #id = this.dataset.id;
+  #id = this.dataset.id!;
   get id() {
     return this.#id;
   }
 
-  #input = this.querySelector('h2 input');
+  #input = this.querySelector('h2 input') as HTMLInputElement;
   get name() {
     return this.#input.value;
   }
@@ -125,15 +26,19 @@ class KanbanBoard extends ProgressiveElement {
     this.#input.value = name;
   }
 
-  #filterInput = this.querySelector('input[name="filter"]');
+  #filterInput = this.querySelector('input[name="filter"]') as HTMLInputElement;
   get filter() {
     return this.#filterInput.value;
   }
   set filter(filter) {
-    this.#filterInput.value = name;
+    this.#filterInput.value = filter;
   }
 
-  handleEvent(event) {
+  get cards(): KanbanCard[] {
+    return Array.from(this.querySelectorAll('kanban-card'));
+  }
+
+  handleEvent(event: Event) {
     const { intention, target } = findClosestIntention(event);
 
     switch (intention) {
@@ -146,7 +51,7 @@ class KanbanBoard extends ProgressiveElement {
       }
       case 'FILTER_CARDS': {
         const filter = this.filter.toLowerCase();
-        this.querySelectorAll('kanban-card').forEach((card) => {
+        this.cards.forEach((card) => {
           card.hidden = !(card.name.toLowerCase().includes(filter) || card.description.toLowerCase().includes(filter));
         });
         return;
@@ -158,26 +63,29 @@ class KanbanBoard extends ProgressiveElement {
         return;
       }
       case 'DELETE_CARD': {
-        const card = target.closest(KanbanCard.tagName);
+        const card = target.closest(KanbanCard.tagName)!;
         card.remove();
         return;
       }
       case 'START_DRAGGING_CARD': {
-        document.activeElement?.blur();
-        const card = target.closest(KanbanCard.tagName);
+        if (!(event instanceof DragEvent)) return;
+
+        (document.activeElement as HTMLElement)?.blur();
+        const card = target.closest(KanbanCard.tagName)!;
         card.dragging = true;
-        event.dataTransfer.setData(CONTENT_TYPES.CARD, card.id);
-        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer!.setData(CONTENT_TYPES.CARD, card.id);
+        event.dataTransfer!.effectAllowed = 'move';
         return;
       }
       case 'STOP_DRAGGING_CARD': {
-        const card = target.closest(KanbanCard.tagName);
+        const card = target.closest(KanbanCard.tagName)!;
         card.dragging = false;
         return;
       }
       case 'DRAGGING_OVER_CARD': {
-        if (event.dataTransfer.types.includes(CONTENT_TYPES.CARD)) {
-          const card = target.closest(KanbanCard.tagName);
+        if (!(event instanceof DragEvent)) return;
+        if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
+          const card = target.closest(KanbanCard.tagName)!;
           event.preventDefault();
           event.stopPropagation();
           let rect = card.getBoundingClientRect();
@@ -187,18 +95,21 @@ class KanbanBoard extends ProgressiveElement {
         return;
       }
       case 'DRAG_LEAVING_CARD': {
-        if (event.dataTransfer.types.includes(CONTENT_TYPES.CARD)) {
-          const card = target.closest(KanbanCard.tagName);
+        if (!(event instanceof DragEvent)) return;
+        if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
+          const card = target.closest(KanbanCard.tagName)!;
           card.acceptDrop = 'none';
         }
         return;
       }
       case 'DROPPING_ON_CARD': {
-        if (event.dataTransfer.types.includes(CONTENT_TYPES.CARD)) {
-          const card = target.closest(KanbanCard.tagName);
-          const id = event.dataTransfer.getData(CONTENT_TYPES.CARD);
-          const droppedCard = document.querySelector(`[data-id="${id}"]`);
-          card.insertAdjacentElement(card.acceptDrop === 'accept-card-above' ? 'beforeBegin' : 'afterEnd', droppedCard);
+        if (!(event instanceof DragEvent)) return;
+
+        if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
+          const card = target.closest(KanbanCard.tagName)!;
+          const id = event.dataTransfer!.getData(CONTENT_TYPES.CARD);
+          const droppedCard = this.getCard(id)!;
+          card.insertAdjacentElement(card.acceptDrop === 'accept-card-above' ? 'beforebegin' : 'afterend', droppedCard);
           card.acceptDrop = 'none';
         }
         return;
@@ -207,29 +118,33 @@ class KanbanBoard extends ProgressiveElement {
         return;
       }
       case 'ADD_CARD': {
-        const column = target.closest(KanbanColumn.tagName);
+        const column = target.closest(KanbanColumn.tagName)!;
         column.addCard({ id: crypto.randomUUID(), name: '', description: '' });
         return;
       }
       case 'START_DRAGGING_COLUMN': {
-        const column = target.closest(KanbanColumn.tagName);
+        if (!(event instanceof DragEvent)) return;
+
+        const column = target.closest(KanbanColumn.tagName)!;
         column.dragging = true;
-        event.dataTransfer.setData(CONTENT_TYPES.COLUMN, column.id);
-        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer!.setData(CONTENT_TYPES.COLUMN, column.id);
+        event.dataTransfer!.effectAllowed = 'move';
         return;
       }
       case 'STOP_DRAGGING_COLUMN': {
-        const column = target.closest(KanbanColumn.tagName);
+        const column = target.closest(KanbanColumn.tagName)!;
         column.dragging = false;
         return;
       }
       case 'DRAGGING_OVER_COLUMN': {
-        const column = target.closest(KanbanColumn.tagName);
-        if (event.dataTransfer.types.includes(CONTENT_TYPES.CARD)) {
+        if (!(event instanceof DragEvent)) return;
+
+        const column = target.closest(KanbanColumn.tagName)!;
+        if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
           event.preventDefault();
           event.stopPropagation();
           column.acceptDrop = 'accept-card';
-        } else if (event.dataTransfer.types.includes(CONTENT_TYPES.COLUMN)) {
+        } else if (event.dataTransfer!.types.includes(CONTENT_TYPES.COLUMN)) {
           event.preventDefault();
           event.stopPropagation();
           let rect = column.getBoundingClientRect();
@@ -239,28 +154,32 @@ class KanbanBoard extends ProgressiveElement {
         return;
       }
       case 'DRAG_LEAVING_COLUMN': {
-        const column = target.closest(KanbanColumn.tagName);
-        if (event.dataTransfer.types.includes(CONTENT_TYPES.CARD)) {
+        if (!(event instanceof DragEvent)) return;
+
+        const column = target.closest(KanbanColumn.tagName)!;
+        if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
           column.acceptDrop = 'none';
-        } else if (event.dataTransfer.types.includes(CONTENT_TYPES.COLUMN)) {
+        } else if (event.dataTransfer!.types.includes(CONTENT_TYPES.COLUMN)) {
           column.acceptDrop = 'none';
         }
         return;
       }
       case 'DROPPING_ON_COLUMN': {
-        const column = target.closest(KanbanColumn.tagName);
-        if (event.dataTransfer.types.includes(CONTENT_TYPES.CARD)) {
+        if (!(event instanceof DragEvent)) return;
+
+        const column = target.closest(KanbanColumn.tagName)!;
+        if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
           event.stopPropagation();
-          const id = event.dataTransfer.getData(CONTENT_TYPES.CARD);
-          const card = document.querySelector(`[data-id="${id}"]`);
+          const id = event.dataTransfer!.getData(CONTENT_TYPES.CARD);
+          const card = this.getCard(id)!;
           column.appendCard(card);
           column.acceptDrop = 'none';
-        } else if (event.dataTransfer.types.includes(CONTENT_TYPES.COLUMN)) {
+        } else if (event.dataTransfer!.types.includes(CONTENT_TYPES.COLUMN)) {
           event.stopPropagation();
-          const id = event.dataTransfer.getData(CONTENT_TYPES.COLUMN);
-          const droppedColumn = document.querySelector(`[data-id="${id}"]`);
+          const id = event.dataTransfer!.getData(CONTENT_TYPES.COLUMN);
+          const droppedColumn = this.getColumn(id)!;
           column.insertAdjacentElement(
-            column.acceptDrop === 'accept-column-left' ? 'beforeBegin' : 'afterEnd',
+            column.acceptDrop === 'accept-column-left' ? 'beforebegin' : 'afterend',
             droppedColumn
           );
           column.acceptDrop = 'none';
@@ -270,8 +189,16 @@ class KanbanBoard extends ProgressiveElement {
     }
   }
 
-  addColumn(column) {
-    const newColumn = parseHTML(renderColumn(column));
+  getCard(id: string): KanbanCard | null {
+    return this.querySelector(`kanban-card[data-id="${id}"]`);
+  }
+
+  getColumn(id: string): KanbanColumn | null {
+    return this.querySelector(`kanban-column[data-id="${id}"]`);
+  }
+
+  addColumn(column: Column) {
+    const newColumn = parseHTML(renderColumn(column)) as KanbanColumn;
     this.#ul.appendChild(newColumn);
     newColumn.focusName();
   }
@@ -287,18 +214,18 @@ class KanbanBoard extends ProgressiveElement {
 }
 
 class KanbanColumn extends ProgressiveElement {
-  static tagName = 'kanban-column';
+  static tagName = 'kanban-column' as const;
 
   #internals = this.attachInternals();
 
-  #ul = this.querySelector('ul');
+  #ul = this.querySelector('ul')!;
 
-  #id = this.dataset.id;
+  #id = this.dataset.id!;
   get id() {
     return this.#id;
   }
 
-  #input = this.querySelector('input');
+  #input = this.querySelector('input')!;
   get name() {
     return this.#input.value;
   }
@@ -333,13 +260,17 @@ class KanbanColumn extends ProgressiveElement {
     }
   }
 
-  addCard(card) {
-    const newCard = parseHTML(renderCard(card));
+  get cards(): KanbanCard[] {
+    return Array.from(this.querySelectorAll('kanban-card'));
+  }
+
+  addCard(card: Card) {
+    const newCard = parseHTML(renderCard(card)) as KanbanCard;
     this.appendCard(newCard);
     newCard.focusName();
   }
 
-  appendCard(cardElement) {
+  appendCard(cardElement: KanbanCard) {
     this.#ul.appendChild(cardElement);
   }
 
@@ -348,13 +279,13 @@ class KanbanColumn extends ProgressiveElement {
   }
 
   toJSON() {
-    const cards = Array.from(this.querySelectorAll('kanban-card')).map((card) => card.toJSON());
+    const cards = this.cards.map((card) => card.toJSON());
     return { id: this.id, name: this.name, cards };
   }
 }
 
 class KanbanCard extends ProgressiveElement {
-  static tagName = 'kanban-card';
+  static tagName = 'kanban-card' as const;
 
   #internals = this.attachInternals();
 
@@ -363,7 +294,7 @@ class KanbanCard extends ProgressiveElement {
     return this.#id;
   }
 
-  #input = this.querySelector('input');
+  #input = this.querySelector('input')!;
   get name() {
     return this.#input.value;
   }
@@ -371,7 +302,7 @@ class KanbanCard extends ProgressiveElement {
     this.#input.value = name;
   }
 
-  #textarea = this.querySelector('textarea');
+  #textarea = this.querySelector('textarea')!;
   get description() {
     return this.#textarea.value;
   }
@@ -464,3 +395,11 @@ document.body.appendChild(
     })
   )
 );
+
+declare global {
+  interface HTMLElementTagNameMap {
+    [KanbanBoard.tagName]: KanbanBoard;
+    [KanbanColumn.tagName]: KanbanColumn;
+    [KanbanCard.tagName]: KanbanCard;
+  }
+}
