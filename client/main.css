@@ -183,8 +183,15 @@ kanban-card {
   background-color: var(--overlay-bgColor);
   border: solid 1px var(--borderColor-default);
   border-radius: 6px;
+  display: grid;
+  grid-template-areas:
+    'name delete'
+    'description description';
+  grid-template-rows: auto auto;
+  grid-template-columns: 1fr auto;
+  gap: 0.25rem;
   cursor: move;
-  padding: 8px 12px 12px;
+  padding: 1rem;
 
   &:state(dragging) {
     opacity: 0.5;
@@ -198,11 +205,17 @@ kanban-card {
     border-bottom: 2px solid var(--bgColor-accent-emphasis);
   }
 
+  input {
+    grid-area: name;
+  }
+
   button {
+    grid-area: delete;
     font-size: 12px;
   }
 
   textarea {
+    grid-area: description;
     width: 100%;
   }
 }

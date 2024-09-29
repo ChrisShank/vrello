@@ -19,6 +19,7 @@ class KanbanBoard extends ProgressiveElement {
     'dragleave',
     'drop',
     'keyup',
+    'pointerdown',
   ];
 
   #ul = this.querySelector('ul')!;
@@ -130,6 +131,7 @@ class KanbanBoard extends ProgressiveElement {
       }
       case 'MOVE_CARD_UP': {
         if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+
         const sibling = closestSibling(target, ':not([hidden])', 'before');
         sibling?.insertAdjacentElement('beforebegin', target);
         target.focus();
@@ -137,6 +139,7 @@ class KanbanBoard extends ProgressiveElement {
       }
       case 'MOVE_CARD_DOWN': {
         if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+
         const sibling = closestSibling(target, ':not([hidden])', 'after');
         sibling?.insertAdjacentElement('afterend', target);
         target.focus();
@@ -144,6 +147,7 @@ class KanbanBoard extends ProgressiveElement {
       }
       case 'MOVE_CARD_RIGHT': {
         if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+
         const column = target.closest('kanban-column');
         const columnToMoveTo = column?.nextElementSibling;
 
@@ -155,6 +159,7 @@ class KanbanBoard extends ProgressiveElement {
       }
       case 'MOVE_CARD_LEFT': {
         if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+
         const column = target.closest('kanban-column');
         const columnToMoveTo = column?.previousElementSibling;
 
@@ -162,6 +167,12 @@ class KanbanBoard extends ProgressiveElement {
           columnToMoveTo.appendCard(target);
           target.focus();
         }
+        return;
+      }
+      case 'FOCUS_CARD': {
+        if (!(target instanceof KanbanCard) || event.target !== target) return;
+
+        target.focus();
         return;
       }
       case 'ADD_CARD': {
@@ -189,11 +200,9 @@ class KanbanBoard extends ProgressiveElement {
         const column = target.closest(KanbanColumn.tagName)!;
         if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
           event.preventDefault();
-          event.stopPropagation();
           column.acceptDrop = 'accept-card';
         } else if (event.dataTransfer!.types.includes(CONTENT_TYPES.COLUMN)) {
           event.preventDefault();
-          event.stopPropagation();
           let rect = column.getBoundingClientRect();
           let midpoint = rect.left + rect.width / 2;
           column.acceptDrop = event.clientX <= midpoint ? 'accept-column-left' : 'accept-column-right';
@@ -216,13 +225,11 @@ class KanbanBoard extends ProgressiveElement {
 
         const column = target.closest(KanbanColumn.tagName)!;
         if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
-          event.stopPropagation();
           const id = event.dataTransfer!.getData(CONTENT_TYPES.CARD);
           const card = this.getCard(id)!;
           column.appendCard(card);
           column.acceptDrop = 'none';
         } else if (event.dataTransfer!.types.includes(CONTENT_TYPES.COLUMN)) {
-          event.stopPropagation();
           const id = event.dataTransfer!.getData(CONTENT_TYPES.COLUMN);
           const droppedColumn = this.getColumn(id)!;
           column.insertAdjacentElement(

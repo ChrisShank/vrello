@@ -35,6 +35,7 @@ export function renderCard({ id, name, description }) {
   role="listitem" data-id="${id}" 
   draggable="true"
   tabindex="0"
+  on-pointerdown="FOCUS_CARD"
   on-dragstart="START_DRAGGING_CARD" 
   on-dragend="STOP_DRAGGING_CARD"
   on-dragover="DRAGGING_OVER_CARD"
