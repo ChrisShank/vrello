@@ -43,7 +43,7 @@ header {
 
 main {
   flex: 1;
-  min-height: 0; /* Makes the columns overflow if there are too many cards. */
+  min-height: 0; /* Makes the columns overflow scroll if there are too many cards. */
 }
 
 ul {

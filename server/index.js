@@ -63,7 +63,7 @@ app.use('*', async (req, res, next) => {
       ],
     });
 
-    const html = template.replace('<!-- BODY -->', boardHTML);
+    const html = template.replace('<!-- BODY -->', boardHTML) + '<script type="module" src="/@vite/client"></script>';
 
     res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
   } catch (e) {
@@ -72,4 +72,4 @@ app.use('*', async (req, res, next) => {
   }
 });
 
-app.listen(5173);
+app.listen(5174);

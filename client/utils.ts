@@ -10,7 +10,7 @@ export interface Intention {
  * @param prefix By default intentions are prefixed with `on:`, use this to override that prefix.
  * @returns
  */
-export function findClosestIntention(event: Event): Intention | Record<string, never> {
+export function findClosestIntention(event: Event): Intention | { intention?: never; target?: never } {
   if (event.target instanceof Element) {
     const attributeName = `on-${event.type}`;
     const target = event.target.closest(`[${attributeName}]`);
