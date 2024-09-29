@@ -82,3 +82,12 @@ export class ProgressiveElement extends HTMLElement {
 export function parseHTML(html: string): Element {
   return document.createRange().createContextualFragment(html).firstElementChild!;
 }
+
+export function closestSibling(el: Element, selector: string, where: 'before' | 'after'): Element | null {
+  const siblingProperty = where === 'before' ? 'previousElementSibling' : 'nextElementSibling';
+  let sibling = el[siblingProperty];
+  while (sibling !== null && !sibling.matches(selector)) {
+    sibling = sibling[siblingProperty];
+  }
+  return sibling;
+}

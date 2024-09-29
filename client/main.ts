@@ -1,5 +1,5 @@
 import { renderColumn, renderCard, Card, Column, UUID, Board } from '../shared/templates';
-import { findClosestIntention, keyboardModifiers, parseHTML, ProgressiveElement } from './utils';
+import { closestSibling, findClosestIntention, keyboardModifiers, parseHTML, ProgressiveElement } from './utils';
 
 const CONTENT_TYPES = {
   COLUMN: 'text/kanban-column',
@@ -61,9 +61,11 @@ class KanbanBoard extends ProgressiveElement {
         this.addColumn({ id: crypto.randomUUID(), name: '', cards: [] });
         return;
       }
+      // TODO: some times the browser will save the value of the filter input but we dont apply it.
       case 'FILTER_CARDS': {
         const filter = this.filter.toLowerCase();
         this.cards.forEach((card) => {
+          // Note: Filtering cards depends on the cards being hidden with the `hidden` attribute.
           card.hidden = !(card.name.toLowerCase().includes(filter) || card.description.toLowerCase().includes(filter));
         });
         return;
@@ -126,16 +128,17 @@ class KanbanBoard extends ProgressiveElement {
         }
         return;
       }
-      // TODO: when the board is filtered, find the first sibling that isn't hidden
       case 'MOVE_CARD_UP': {
         if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
-        target.previousElementSibling?.insertAdjacentElement('beforebegin', target);
+        const sibling = closestSibling(target, ':not([hidden])', 'before');
+        sibling?.insertAdjacentElement('beforebegin', target);
         target.focus();
         return;
       }
       case 'MOVE_CARD_DOWN': {
         if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
-        target.nextElementSibling?.insertAdjacentElement('afterend', target);
+        const sibling = closestSibling(target, ':not([hidden])', 'after');
+        sibling?.insertAdjacentElement('afterend', target);
         target.focus();
         return;
       }
