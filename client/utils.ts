@@ -10,10 +10,13 @@ export interface Intention {
  * @param prefix By default intentions are prefixed with `on:`, use this to override that prefix.
  * @returns
  */
-export function findClosestIntention(event: Event): Intention | { intention?: never; target?: never } {
+export function findClosestIntention(
+  event: Event,
+  modifier?: (event: Event) => string
+): Intention | { intention?: never; target?: never } {
   if (event.target instanceof Element) {
-    const attributeName = `on-${event.type}`;
-    const target = event.target.closest(`[${attributeName}]`);
+    const attributeName = `on-${event.type}${modifier?.(event) ?? ''}`;
+    const target = event.target.closest(`[${CSS.escape(attributeName)}]`);
     if (target !== null) {
       const intention = target.getAttribute(attributeName)!;
       return { intention, target };
@@ -21,6 +24,21 @@ export function findClosestIntention(event: Event): Intention | { intention?: ne
   }
 
   return {};
+}
+
+const systemKeys = ['alt', 'ctrl', 'meta', 'shift'];
+
+/**
+ * A utility that adds modifiers from keyboard events to intentions.
+ * @param event DOM event
+ * @returns
+ */
+export function keyboardModifiers(event: Event) {
+  if (event instanceof KeyboardEvent) {
+    const systemModifiers = systemKeys.filter((key) => event[`${key}Key` as keyof KeyboardEvent]).join('.');
+    return `${systemModifiers.length > 0 ? '.' : ''}${systemModifiers}.${event.code}`;
+  }
+  return '';
 }
 
 export interface AnyEvent {

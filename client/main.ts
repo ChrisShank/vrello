@@ -1,5 +1,5 @@
 import { renderColumn, renderCard, Card, Column, UUID, Board } from '../shared/templates';
-import { findClosestIntention, parseHTML, ProgressiveElement } from './utils';
+import { findClosestIntention, keyboardModifiers, parseHTML, ProgressiveElement } from './utils';
 
 const CONTENT_TYPES = {
   COLUMN: 'text/kanban-column',
@@ -9,7 +9,17 @@ const CONTENT_TYPES = {
 class KanbanBoard extends ProgressiveElement {
   static tagName = 'kanban-board' as const;
 
-  static delegatedEvents = ['click', 'change', 'input', 'dragstart', 'dragend', 'dragover', 'dragleave', 'drop'];
+  static delegatedEvents = [
+    'click',
+    'change',
+    'input',
+    'dragstart',
+    'dragend',
+    'dragover',
+    'dragleave',
+    'drop',
+    'keyup',
+  ];
 
   #ul = this.querySelector('ul')!;
 
@@ -39,7 +49,9 @@ class KanbanBoard extends ProgressiveElement {
   }
 
   handleEvent(event: Event) {
-    const { intention, target } = findClosestIntention(event);
+    const { intention, target } = findClosestIntention(event, keyboardModifiers);
+
+    if (intention === undefined) return;
 
     switch (intention) {
       case 'UPDATE_BOARD_NAME': {
@@ -114,7 +126,39 @@ class KanbanBoard extends ProgressiveElement {
         }
         return;
       }
-      case 'UPDATE_COLUMN_NAME': {
+      // TODO: when the board is filtered, find the first sibling that isn't hidden
+      case 'MOVE_CARD_UP': {
+        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        target.previousElementSibling?.insertAdjacentElement('beforebegin', target);
+        target.focus();
+        return;
+      }
+      case 'MOVE_CARD_DOWN': {
+        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        target.nextElementSibling?.insertAdjacentElement('afterend', target);
+        target.focus();
+        return;
+      }
+      case 'MOVE_CARD_RIGHT': {
+        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        const column = target.closest('kanban-column');
+        const columnToMoveTo = column?.nextElementSibling;
+
+        if (columnToMoveTo instanceof KanbanColumn) {
+          columnToMoveTo.appendCard(target);
+          target.focus();
+        }
+        return;
+      }
+      case 'MOVE_CARD_LEFT': {
+        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        const column = target.closest('kanban-column');
+        const columnToMoveTo = column?.previousElementSibling;
+
+        if (columnToMoveTo instanceof KanbanColumn) {
+          columnToMoveTo.appendCard(target);
+          target.focus();
+        }
         return;
       }
       case 'ADD_CARD': {
@@ -184,6 +228,18 @@ class KanbanBoard extends ProgressiveElement {
           );
           column.acceptDrop = 'none';
         }
+        return;
+      }
+      case 'MOVE_COLUMN_RIGHT': {
+        if (!(target instanceof KanbanColumn) || document.activeElement !== target) return;
+        target.nextElementSibling?.insertAdjacentElement('afterend', target);
+        target.focus();
+        return;
+      }
+      case 'MOVE_COLUMN_LEFT': {
+        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        target.previousElementSibling?.insertAdjacentElement('beforebegin', target);
+        target.focus();
         return;
       }
     }
