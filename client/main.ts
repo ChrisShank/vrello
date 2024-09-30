@@ -18,7 +18,6 @@ class KanbanBoard extends ProgressiveElement {
     'dragleave',
     'drop',
     'keyup',
-    'pointerdown',
   ];
 
   #ul = this.querySelector('ul')!;
@@ -52,7 +51,6 @@ class KanbanBoard extends ProgressiveElement {
 
   handleEvent(event: Event) {
     const { intention, target } = findClosestIntention(event, this.#excludedIntentions);
-
     if (intention === undefined) return;
 
     switch (intention) {
@@ -61,6 +59,11 @@ class KanbanBoard extends ProgressiveElement {
       }
       case 'ADD_COLUMN': {
         this.addColumn({ id: crypto.randomUUID(), name: '', cards: [] });
+        return;
+      }
+      case 'DELETE_COLUMN': {
+        const column = target.closest(KanbanColumn.tagName)!;
+        column.remove();
         return;
       }
       // TODO: some times the browser will save the value of the filter input but we dont apply it.
@@ -131,7 +134,7 @@ class KanbanBoard extends ProgressiveElement {
         return;
       }
       case 'MOVE_CARD_UP': {
-        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        if (!(target instanceof KanbanCard)) return;
 
         const sibling = closestSibling(target, ':not([hidden])', 'before');
         sibling?.insertAdjacentElement('beforebegin', target);
@@ -139,28 +142,28 @@ class KanbanBoard extends ProgressiveElement {
         return;
       }
       case 'MOVE_CARD_TO_TOP': {
-        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        if (!(target instanceof KanbanCard)) return;
 
         target.parentElement?.firstElementChild?.insertAdjacentElement('beforebegin', target);
         target.focus();
         return;
       }
       case 'MOVE_CARD_DOWN': {
-        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        if (!(target instanceof KanbanCard)) return;
 
         closestSibling(target, ':not([hidden])', 'after')?.insertAdjacentElement('afterend', target);
         target.focus();
         return;
       }
       case 'MOVE_CARD_TO_BOTTOM': {
-        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        if (!(target instanceof KanbanCard)) return;
 
         target.parentElement?.lastElementChild?.insertAdjacentElement('afterend', target);
         target.focus();
         return;
       }
       case 'MOVE_CARD_RIGHT': {
-        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        if (!(target instanceof KanbanCard)) return;
 
         const column = target.closest('kanban-column');
         const columnToMoveTo = column?.nextElementSibling;
@@ -172,7 +175,7 @@ class KanbanBoard extends ProgressiveElement {
         return;
       }
       case 'MOVE_CARD_LEFT': {
-        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        if (!(target instanceof KanbanCard)) return;
 
         const column = target.closest('kanban-column');
         const columnToMoveTo = column?.previousElementSibling;
@@ -183,12 +186,6 @@ class KanbanBoard extends ProgressiveElement {
         }
         return;
       }
-      case 'FOCUS_CARD': {
-        if (!(target instanceof KanbanCard) || event.target !== target) return;
-
-        target.focus();
-        return;
-      }
       case 'ADD_CARD': {
         const column = target.closest(KanbanColumn.tagName)!;
         column.addCard({ id: crypto.randomUUID(), name: '', description: '' });
@@ -197,6 +194,7 @@ class KanbanBoard extends ProgressiveElement {
       case 'START_DRAGGING_COLUMN': {
         if (!(event instanceof DragEvent)) return;
 
+        (document.activeElement as HTMLElement)?.blur();
         const column = target.closest(KanbanColumn.tagName)!;
         column.dragging = true;
         event.dataTransfer!.setData(CONTENT_TYPES.COLUMN, column.id);
@@ -261,13 +259,14 @@ class KanbanBoard extends ProgressiveElement {
         return;
       }
       case 'MOVE_COLUMN_RIGHT': {
-        if (!(target instanceof KanbanColumn) || document.activeElement !== target) return;
+        console.log(event);
+        if (!(target instanceof KanbanColumn)) return;
         target.nextElementSibling?.insertAdjacentElement('afterend', target);
         target.focus();
         return;
       }
       case 'MOVE_COLUMN_LEFT': {
-        if (!(target instanceof KanbanCard) || document.activeElement !== target) return;
+        if (!(target instanceof KanbanColumn)) return;
         target.previousElementSibling?.insertAdjacentElement('beforebegin', target);
         target.focus();
         return;

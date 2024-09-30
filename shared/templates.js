@@ -26,10 +26,11 @@ export function renderColumn({ id, name, cards }) {
     on-keyup.ArrowLeft="MOVE_COLUMN_LEFT"
   >
     <input value="${name}" name="name" on-change="UPDATE_COLUMN_NAME" />
+    <button name="delete" on-click="DELETE_COLUMN">Delete</button>
     <ul>
       ${cards.map((card) => renderCard(card)).join('')}
     </ul>
-    <button on-click="ADD_CARD">Add Item</button>
+    <button name="add" on-click="ADD_CARD">Add Item</button>
   </kanban-column>`;
 }
 
@@ -39,7 +40,6 @@ export function renderCard({ id, name, description }) {
     data-id="${id}"
     draggable="true"
     tabindex="0"
-    on-pointerdown="FOCUS_CARD"
     on-dragstart="START_DRAGGING_CARD"
     on-dragend="STOP_DRAGGING_CARD"
     on-dragover="DRAGGING_OVER_CARD"
