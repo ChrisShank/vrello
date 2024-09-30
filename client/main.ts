@@ -1,6 +1,5 @@
 import { renderColumn, renderCard, Card, Column, UUID, Board } from '../shared/templates';
 import { closestSibling, findClosestIntention, parseHTML, ProgressiveElement } from './utils';
-
 const CONTENT_TYPES = {
   COLUMN: 'text/kanban-column',
   CARD: 'text/kanban-card',
@@ -49,8 +48,10 @@ class KanbanBoard extends ProgressiveElement {
     return Array.from(this.querySelectorAll('kanban-card'));
   }
 
+  #excludedIntentions = new Set<string>();
+
   handleEvent(event: Event) {
-    const { intention, target } = findClosestIntention(event);
+    const { intention, target } = findClosestIntention(event, this.#excludedIntentions);
 
     if (intention === undefined) return;
 
@@ -200,11 +201,17 @@ class KanbanBoard extends ProgressiveElement {
         column.dragging = true;
         event.dataTransfer!.setData(CONTENT_TYPES.COLUMN, column.id);
         event.dataTransfer!.effectAllowed = 'move';
+        this.#excludedIntentions.add('DRAGGING_OVER_CARD');
+        this.#excludedIntentions.add('DRAG_LEAVING_CARD');
+        this.#excludedIntentions.add('DROPPING_ON_CARD');
         return;
       }
       case 'STOP_DRAGGING_COLUMN': {
         const column = target.closest(KanbanColumn.tagName)!;
         column.dragging = false;
+        this.#excludedIntentions.delete('DRAGGING_OVER_CARD');
+        this.#excludedIntentions.delete('DRAG_LEAVING_CARD');
+        this.#excludedIntentions.delete('DROPPING_ON_CARD');
         return;
       }
       case 'DRAGGING_OVER_COLUMN': {

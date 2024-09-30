@@ -3,21 +3,22 @@ export interface Intention {
   target: Element;
 }
 
-/**
- * Given a DOM event this utility function finds the closest intention. An intention is a DOM attribute that maps a DOM event to a semantically meaningful event. The attribute takes the shape `${prefix}${event.type}${modifiers?}="${semantic event}"`.
- * @param event DOM event
- * @param modifier A function that adds a modifier to the intention. Useful for keyboard modifiers.
- * @param prefix By default intentions are prefixed with `on:`, use this to override that prefix.
- * @returns
- */
-export function findClosestIntention(event: Event): Intention | { intention?: never; target?: never } {
-  if (event.target instanceof Element) {
+export function findClosestIntention(
+  event: Event,
+  excludedIntentions?: ReadonlySet<string>
+): Intention | { intention?: never; target?: never } {
+  let target: Element | null = event.target as Element | null;
+
+  while (target !== null) {
     const attributeName = `on-${event.type}${mouseModifiers(event)}${keyboardModifiers(event)}`;
-    const target = event.target.closest(`[${CSS.escape(attributeName)}]`);
-    if (target !== null) {
-      const intention = target.getAttribute(attributeName)!;
-      return { intention, target };
+    const intentionTarget = target.closest(`[${CSS.escape(attributeName)}]`);
+    if (intentionTarget !== null) {
+      const intention = intentionTarget.getAttribute(attributeName)!;
+      if (excludedIntentions === undefined || !excludedIntentions.has(intention)) {
+        return { intention, target: intentionTarget };
+      }
     }
+    target = intentionTarget?.parentElement || null;
   }
 
   return {};
