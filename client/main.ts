@@ -1,5 +1,5 @@
 import { renderColumn, renderCard, Card, Column, UUID, Board } from '../shared/templates';
-import { closestSibling, findClosestIntention, keyboardModifiers, parseHTML, ProgressiveElement } from './utils';
+import { closestSibling, findClosestIntention, parseHTML, ProgressiveElement } from './utils';
 
 const CONTENT_TYPES = {
   COLUMN: 'text/kanban-column',
@@ -50,7 +50,7 @@ class KanbanBoard extends ProgressiveElement {
   }
 
   handleEvent(event: Event) {
-    const { intention, target } = findClosestIntention(event, keyboardModifiers);
+    const { intention, target } = findClosestIntention(event);
 
     if (intention === undefined) return;
 
