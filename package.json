@@ -4,13 +4,12 @@
   "private": true,
   "description": "a vanilla trello",
   "scripts": {
-    "dev": "node --watch server/index.js",
+    "dev": "vite client",
     "build": "vite build client"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "express": "^4.21.0",
     "typescript": "^5.6.2",
     "vite": "^5.4.8"
   },
