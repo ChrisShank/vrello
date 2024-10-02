@@ -1,7 +1,7 @@
 export const html = String.raw;
 
 export function renderBoard({ id, name, columns }) {
-  return html`<kanban-board data-id="${id}">
+  return html`<kanban-board id="${id}">
     <h2><input value="${name}" on-change="UPDATE_BOARD_NAME" /></h2>
     <label for="filter">Filter: <input value="" name="filter" id="filter" on-input="FILTER_CARDS" /></label>
     <button on-click="ADD_COLUMN">Add Column</button>
@@ -14,7 +14,7 @@ export function renderBoard({ id, name, columns }) {
 export function renderColumn({ id, name, cards }) {
   return html`<kanban-column
     role="listitem"
-    data-id="${id}"
+    id="${id}"
     draggable="true"
     tabindex="0"
     on-dragstart="START_DRAGGING_COLUMN"
@@ -37,7 +37,7 @@ export function renderColumn({ id, name, cards }) {
 export function renderCard({ id, name, description }) {
   return html`<kanban-card
     role="listitem"
-    data-id="${id}"
+    id="${id}"
     draggable="true"
     tabindex="0"
     on-dragstart="START_DRAGGING_CARD"

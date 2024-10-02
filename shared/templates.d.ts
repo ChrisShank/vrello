@@ -1,19 +1,17 @@
-export type UUID = ReturnType<Crypto['randomUUID']>;
-
 export interface Card {
-  id: UUID;
+  id: string;
   name: string;
   description: string;
 }
 
 export interface Column {
-  id: UUID;
+  id: string;
   name: string;
   cards: Card[];
 }
 
 export interface Board {
-  id: UUID;
+  id: string;
   name: string;
   columns: Column[];
 }

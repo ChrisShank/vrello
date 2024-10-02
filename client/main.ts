@@ -1,5 +1,6 @@
-import { renderColumn, renderCard, Card, Column, UUID, Board } from '../shared/templates';
+import { renderColumn, renderCard, Card, Column, Board } from '../shared/templates';
 import { closestSibling, findClosestIntention, parseHTML, ProgressiveElement } from './utils';
+
 const CONTENT_TYPES = {
   COLUMN: 'text/kanban-column',
   CARD: 'text/kanban-card',
@@ -21,11 +22,6 @@ class KanbanBoard extends ProgressiveElement {
   ];
 
   #ul = this.querySelector('ul')!;
-
-  #id = this.dataset.id as UUID;
-  get id() {
-    return this.#id;
-  }
 
   #input = this.querySelector('h2 input') as HTMLInputElement;
   get name() {
@@ -305,11 +301,6 @@ class KanbanColumn extends ProgressiveElement {
 
   #ul = this.querySelector('ul')!;
 
-  #id = this.dataset.id as UUID;
-  get id() {
-    return this.#id;
-  }
-
   #input = this.querySelector('input')!;
   get name() {
     return this.#input.value;
@@ -373,11 +364,6 @@ class KanbanCard extends ProgressiveElement {
   static tagName = 'kanban-card' as const;
 
   #internals = this.attachInternals();
-
-  #id = this.dataset.id as UUID;
-  get id() {
-    return this.#id;
-  }
 
   #input = this.querySelector('input')!;
   get name() {
