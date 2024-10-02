@@ -6,8 +6,8 @@ const CONTENT_TYPES = {
   CARD: 'text/kanban-card',
 };
 
-class KanbanBoard extends ProgressiveElement {
-  static tagName = 'kanban-board' as const;
+class KanbanApp extends ProgressiveElement {
+  static tagName = 'kanban-app' as const;
 
   static delegatedEvents = [
     'click',
@@ -21,27 +21,7 @@ class KanbanBoard extends ProgressiveElement {
     'keyup',
   ];
 
-  #ul = this.querySelector('ul')!;
-
-  #input = this.querySelector('h2 input') as HTMLInputElement;
-  get name() {
-    return this.#input.value;
-  }
-  set name(name) {
-    this.#input.value = name;
-  }
-
-  #filterInput = this.querySelector('input[name="filter"]') as HTMLInputElement;
-  get filter() {
-    return this.#filterInput.value;
-  }
-  set filter(filter) {
-    this.#filterInput.value = filter;
-  }
-
-  get cards(): KanbanCard[] {
-    return Array.from(this.querySelectorAll('kanban-card'));
-  }
+  #board = this.querySelector('kanban-board')!;
 
   #excludedIntentions = new Set<string>();
 
@@ -54,7 +34,7 @@ class KanbanBoard extends ProgressiveElement {
         return;
       }
       case 'ADD_COLUMN': {
-        this.addColumn({ id: crypto.randomUUID(), name: '', cards: [] });
+        this.#board.addColumn({ id: crypto.randomUUID(), name: '', cards: [] });
         return;
       }
       case 'DELETE_COLUMN': {
@@ -64,8 +44,8 @@ class KanbanBoard extends ProgressiveElement {
       }
       // TODO: some times the browser will save the value of the filter input but we dont apply it.
       case 'FILTER_CARDS': {
-        const filter = this.filter.toLowerCase();
-        this.cards.forEach((card) => {
+        const filter = this.#board.filter.toLowerCase();
+        this.#board.cards.forEach((card) => {
           // Note: Filtering cards depends on the cards being hidden with the `hidden` attribute.
           card.hidden = !(card.name.toLowerCase().includes(filter) || card.description.toLowerCase().includes(filter));
         });
@@ -123,7 +103,7 @@ class KanbanBoard extends ProgressiveElement {
         if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
           const card = target.closest(KanbanCard.tagName)!;
           const id = event.dataTransfer!.getData(CONTENT_TYPES.CARD);
-          const droppedCard = this.getCard(id)!;
+          const droppedCard = this.#board.getCard(id)!;
           card.insertAdjacentElement(card.acceptDrop === 'accept-card-above' ? 'beforebegin' : 'afterend', droppedCard);
           card.acceptDrop = 'none';
         }
@@ -240,12 +220,12 @@ class KanbanBoard extends ProgressiveElement {
         const column = target.closest(KanbanColumn.tagName)!;
         if (event.dataTransfer!.types.includes(CONTENT_TYPES.CARD)) {
           const id = event.dataTransfer!.getData(CONTENT_TYPES.CARD);
-          const card = this.getCard(id)!;
+          const card = this.#board.getCard(id)!;
           column.appendCard(card);
           column.acceptDrop = 'none';
         } else if (event.dataTransfer!.types.includes(CONTENT_TYPES.COLUMN)) {
           const id = event.dataTransfer!.getData(CONTENT_TYPES.COLUMN);
-          const droppedColumn = this.getColumn(id)!;
+          const droppedColumn = this.#board.getColumn(id)!;
           column.insertAdjacentElement(
             column.acceptDrop === 'accept-column-left' ? 'beforebegin' : 'afterend',
             droppedColumn
@@ -269,13 +249,39 @@ class KanbanBoard extends ProgressiveElement {
       }
     }
   }
+}
+
+class KanbanBoard extends ProgressiveElement {
+  static tagName = 'kanban-board' as const;
+
+  #ul = this.querySelector('ul')!;
+
+  #input = this.querySelector('h2 input') as HTMLInputElement;
+  get name() {
+    return this.#input.value;
+  }
+  set name(name) {
+    this.#input.value = name;
+  }
+
+  #filterInput = this.querySelector('input[name="filter"]') as HTMLInputElement;
+  get filter() {
+    return this.#filterInput.value;
+  }
+  set filter(filter) {
+    this.#filterInput.value = filter;
+  }
+
+  get cards(): KanbanCard[] {
+    return Array.from(this.querySelectorAll('kanban-card'));
+  }
 
   getCard(id: string): KanbanCard | null {
-    return this.querySelector(`kanban-card[data-id="${id}"]`);
+    return this.querySelector(`kanban-card[id="${id}"]`);
   }
 
   getColumn(id: string): KanbanColumn | null {
-    return this.querySelector(`kanban-column[data-id="${id}"]`);
+    return this.querySelector(`kanban-column[id="${id}"]`);
   }
 
   addColumn(column: Column) {
@@ -417,12 +423,14 @@ class KanbanCard extends ProgressiveElement {
   }
 }
 
+KanbanApp.register();
 KanbanBoard.register();
 KanbanColumn.register();
 KanbanCard.register();
 
 declare global {
   interface HTMLElementTagNameMap {
+    [KanbanApp.tagName]: KanbanApp;
     [KanbanBoard.tagName]: KanbanBoard;
     [KanbanColumn.tagName]: KanbanColumn;
     [KanbanCard.tagName]: KanbanCard;
