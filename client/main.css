@@ -80,7 +80,7 @@ textarea {
   border: 1px solid transparent;
   border-radius: 6px;
   color: inherit;
-  padding: 0.25rem;
+  padding: 0.25rem 0.5rem;
 }
 
 button {

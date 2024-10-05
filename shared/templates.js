@@ -2,7 +2,7 @@ export const html = String.raw;
 
 export function renderBoard({ id, name, columns }) {
   return html`<kanban-board id="${id}">
-    <h2><input value="${name}" on-change="UPDATE_BOARD_NAME" /></h2>
+    <h2><input value="${name}" on-change="UPDATE_BOARD_NAME" placeholder="Board name" /></h2>
     <label for="filter">Filter: <input value="" name="filter" id="filter" on-input="FILTER_CARDS" /></label>
     <button on-click="ADD_COLUMN">Add Column</button>
     <ul>
