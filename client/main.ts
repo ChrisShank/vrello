@@ -27,6 +27,7 @@ class KanbanApp extends ProgressiveElement {
 
   handleEvent(event: Event) {
     const { intention, target } = findClosestIntention(event, this.#excludedIntentions);
+
     if (intention === undefined) return;
 
     switch (intention) {
@@ -46,7 +47,7 @@ class KanbanApp extends ProgressiveElement {
       case 'FILTER_CARDS': {
         const filter = this.#board.filter.toLowerCase();
         this.#board.cards.forEach((card) => {
-          // Note: Filtering cards depends on the cards being hidden with the `hidden` attribute.
+          // Note: Moving cards when a filter is applied looks at the hidden attribute
           card.hidden = !(card.name.toLowerCase().includes(filter) || card.description.toLowerCase().includes(filter));
         });
         return;
@@ -235,7 +236,6 @@ class KanbanApp extends ProgressiveElement {
         return;
       }
       case 'MOVE_COLUMN_RIGHT': {
-        console.log(event);
         if (!(target instanceof KanbanColumn)) return;
         target.nextElementSibling?.insertAdjacentElement('afterend', target);
         target.focus();
@@ -274,6 +274,16 @@ class KanbanBoard extends ProgressiveElement {
 
   get cards(): KanbanCard[] {
     return Array.from(this.querySelectorAll('kanban-card'));
+  }
+
+  connectedCallback() {
+    // Some times the browser will persist the value of the filter even though we dont save it.
+    // Not sure the exact timing of when this happens
+    setTimeout(() => {
+      if (this.filter !== '') {
+        this.#filterInput.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      }
+    }, 10);
   }
 
   getCard(id: string): KanbanCard | null {
