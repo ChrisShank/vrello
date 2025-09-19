@@ -1,4 +1,4 @@
-import { renderColumn, renderCard, Card, Column, Board } from '../shared/templates';
+import { renderColumn, renderCard, Card, Column, Board } from './templates';
 import { closestSibling, findClosestIntention, parseHTML } from './utils';
 import '@folkjs/labs/standalone/folk-sync-attribute';
 import { ReactiveElement } from '@folkjs/dom/ReactiveElement';

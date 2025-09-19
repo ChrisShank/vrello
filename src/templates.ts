@@ -1,6 +1,24 @@
+export interface Card {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface Column {
+  id: string;
+  name: string;
+  cards: Card[];
+}
+
+export interface Board {
+  id: string;
+  name: string;
+  columns: Column[];
+}
+
 export const html = String.raw;
 
-export function renderBoard({ id, name, columns }) {
+export function renderBoard({ id, name, columns }: Board) {
   return html`<kanban-board id="${id}">
     <h2><input value="${name}" on-change="UPDATE_BOARD_NAME" placeholder="Board name" /></h2>
     <label for="filter">Filter: <input value="" name="filter" id="filter" on-input="FILTER_CARDS" /></label>
@@ -11,7 +29,7 @@ export function renderBoard({ id, name, columns }) {
   </kanban-board>`;
 }
 
-export function renderColumn({ id, name, cards }) {
+export function renderColumn({ id, name, cards }: Column) {
   return html`<kanban-column
     role="listitem"
     id="${id}"
@@ -34,7 +52,7 @@ export function renderColumn({ id, name, cards }) {
   </kanban-column>`;
 }
 
-export function renderCard({ id, name, description }) {
+export function renderCard({ id, name, description }: Card) {
   return html`<kanban-card
     role="listitem"
     id="${id}"
