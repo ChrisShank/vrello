@@ -1,5 +1,5 @@
 import { defineConfig, Plugin } from 'vite';
-import { renderBoard } from '../shared/templates';
+import { renderBoard } from './shared/templates';
 
 const indexPlugin: Plugin = {
   name: 'render-index',
@@ -18,5 +18,13 @@ export default defineConfig({
   build: {
     target: 'es2022',
     modulePreload: { polyfill: false },
+  },
+  esbuild: {
+    target: 'es2022',
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'es2022',
+    },
   },
 });

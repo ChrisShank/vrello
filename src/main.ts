@@ -1,29 +1,32 @@
 import { renderColumn, renderCard, Card, Column, Board } from '../shared/templates';
-import { closestSibling, findClosestIntention, parseHTML, ProgressiveElement } from './utils';
+import { closestSibling, findClosestIntention, parseHTML } from './utils';
+import '@folkjs/labs/standalone/folk-sync-attribute';
+import { ReactiveElement } from '@folkjs/dom/ReactiveElement';
 
 const CONTENT_TYPES = {
   COLUMN: 'text/kanban-column',
   CARD: 'text/kanban-card',
 };
 
-class KanbanApp extends ProgressiveElement {
+class KanbanApp extends ReactiveElement {
   static tagName = 'kanban-app' as const;
 
-  static delegatedEvents = [
-    'click',
-    'change',
-    'input',
-    'dragstart',
-    'dragend',
-    'dragover',
-    'dragleave',
-    'drop',
-    'keyup',
-  ];
+  static delegatedEvents = ['click', 'change', 'input', 'dragstart', 'dragend', 'dragover', 'dragleave', 'drop', 'keyup'];
 
   #board = this.querySelector('kanban-board')!;
 
   #excludedIntentions = new Set<string>();
+
+  constructor() {
+    super();
+
+    const constructor = this.constructor as typeof KanbanApp;
+    constructor.delegatedEvents?.forEach((event) => this.addEventListener(event, this));
+  }
+
+  protected createRenderRoot(): HTMLElement | DocumentFragment {
+    return this;
+  }
 
   handleEvent(event: Event) {
     const { intention, target } = findClosestIntention(event, this.#excludedIntentions);
@@ -227,10 +230,7 @@ class KanbanApp extends ProgressiveElement {
         } else if (event.dataTransfer!.types.includes(CONTENT_TYPES.COLUMN)) {
           const id = event.dataTransfer!.getData(CONTENT_TYPES.COLUMN);
           const droppedColumn = this.#board.getColumn(id)!;
-          column.insertAdjacentElement(
-            column.acceptDrop === 'accept-column-left' ? 'beforebegin' : 'afterend',
-            droppedColumn
-          );
+          column.insertAdjacentElement(column.acceptDrop === 'accept-column-left' ? 'beforebegin' : 'afterend', droppedColumn);
           column.acceptDrop = 'none';
         }
         return;
@@ -251,8 +251,12 @@ class KanbanApp extends ProgressiveElement {
   }
 }
 
-class KanbanBoard extends ProgressiveElement {
+class KanbanBoard extends ReactiveElement {
   static tagName = 'kanban-board' as const;
+
+  protected createRenderRoot(): HTMLElement | DocumentFragment {
+    return this;
+  }
 
   #ul = this.querySelector('ul')!;
 
@@ -310,12 +314,16 @@ class KanbanBoard extends ProgressiveElement {
   }
 }
 
-class KanbanColumn extends ProgressiveElement {
+class KanbanColumn extends ReactiveElement {
   static tagName = 'kanban-column' as const;
 
   #internals = this.attachInternals();
 
   #ul = this.querySelector('ul')!;
+
+  protected createRenderRoot(): HTMLElement | DocumentFragment {
+    return this;
+  }
 
   #input = this.querySelector('input')!;
   get name() {
@@ -376,10 +384,14 @@ class KanbanColumn extends ProgressiveElement {
   }
 }
 
-class KanbanCard extends ProgressiveElement {
+class KanbanCard extends ReactiveElement {
   static tagName = 'kanban-card' as const;
 
   #internals = this.attachInternals();
+
+  protected createRenderRoot(): HTMLElement | DocumentFragment {
+    return this;
+  }
 
   #input = this.querySelector('input')!;
   get name() {
@@ -433,10 +445,10 @@ class KanbanCard extends ProgressiveElement {
   }
 }
 
-KanbanApp.register();
-KanbanBoard.register();
-KanbanColumn.register();
-KanbanCard.register();
+KanbanApp.define();
+KanbanBoard.define();
+KanbanColumn.define();
+KanbanCard.define();
 
 declare global {
   interface HTMLElementTagNameMap {
