@@ -314,13 +314,13 @@ class KanbanColumn extends ReactiveElement {
           );
 
           // Only append a dragged card if the column is empty, otherwise make the user drag over another card
-          if (draggedCardOrColumn instanceof KanbanCard && this.firstElementChild === null) {
-            event.dataTransfer!.dropEffect = 'move';
+          if (draggedCardOrColumn instanceof KanbanCard) {
+            const rect = this.lastElementChild?.getBoundingClientRect();
 
-            this.appendChild(draggedCardOrColumn);
+            if (rect == undefined || event.clientY > rect.bottom) {
+              this.appendChild(draggedCardOrColumn);
+            }
           } else if (draggedCardOrColumn instanceof KanbanColumn && this !== draggedCardOrColumn) {
-            event.dataTransfer!.dropEffect = 'move';
-
             const rect = this.getBoundingClientRect();
             const midpoint = rect.left + rect.width / 2;
             const isLeft = event.clientX <= midpoint;
