@@ -1,30 +1,16 @@
-import { defineConfig, Plugin } from 'vite';
-import { renderBoard } from './shared/templates';
-
-const indexPlugin: Plugin = {
-  name: 'render-index',
-  transformIndexHtml(html) {
-    const blankBoard = renderBoard({
-      id: '',
-      name: '',
-      columns: [],
-    });
-    return html.replace('<!-- BODY -->', blankBoard);
-  },
-};
+import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [indexPlugin],
   build: {
-    target: 'es2022',
+    target: 'esnext',
     modulePreload: { polyfill: false },
   },
   esbuild: {
-    target: 'es2022',
+    target: 'esnext',
   },
   optimizeDeps: {
     esbuildOptions: {
-      target: 'es2022',
+      target: 'esnext',
     },
   },
 });
