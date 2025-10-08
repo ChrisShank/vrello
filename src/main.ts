@@ -284,16 +284,23 @@ class KanbanColumn extends ReactiveElement {
     if (changedProperties.has('name')) this.#nameInput.value = this.name;
   }
 
+  moveRight() {
+    this.nextElementSibling?.insertAdjacentElement('afterend', this);
+    this.focus();
+  }
+
+  moveLeft() {
+    this.previousElementSibling?.insertAdjacentElement('beforebegin', this);
+    this.focus();
+  }
+
   handleEvent(event: Event) {
     if (event instanceof KeyboardEvent && event.composedPath()[0] === this) {
       if (event.code === 'ArrowRight') {
-        this.nextElementSibling?.insertAdjacentElement('afterend', this);
+        this.moveRight();
       } else if (event.code === 'ArrowLeft') {
-        this.previousElementSibling?.insertAdjacentElement('beforebegin', this);
+        this.moveLeft();
       }
-
-      // refocus this element
-      this.focus();
       return;
     }
 
