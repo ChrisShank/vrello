@@ -286,14 +286,10 @@ class KanbanColumn extends ReactiveElement {
 
   handleEvent(event: Event) {
     if (event instanceof KeyboardEvent && event.composedPath()[0] === this) {
-      if (event.shiftKey && event.code === 'ArrowUp') {
-        this.parentElement?.firstElementChild?.insertAdjacentElement('beforebegin', this);
-      } else if (event.shiftKey && event.code === 'ArrowDown') {
-        this.parentElement?.appendChild(this);
-      } else if (event.code === 'ArrowRight') {
-        this.nextElementSibling?.appendChild(this);
+      if (event.code === 'ArrowRight') {
+        this.nextElementSibling?.insertAdjacentElement('afterend', this);
       } else if (event.code === 'ArrowLeft') {
-        this.previousElementSibling?.appendChild(this);
+        this.previousElementSibling?.insertAdjacentElement('beforebegin', this);
       }
 
       // refocus this element
@@ -475,7 +471,7 @@ class KanbanCard extends ReactiveElement {
   handleEvent(event: Event) {
     if (event instanceof KeyboardEvent && event.composedPath()[0] === this) {
       if (event.shiftKey && event.code === 'ArrowUp') {
-        this.parentElement?.firstElementChild?.insertAdjacentElement('beforebegin', this);
+        this.parentElement?.insertAdjacentElement('afterbegin', this);
       } else if (event.shiftKey && event.code === 'ArrowDown') {
         this.parentElement?.appendChild(this);
       } else if (event.code === 'ArrowUp') {
