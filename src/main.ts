@@ -162,9 +162,15 @@ class KanbanBoard extends ReactiveElement {
         return;
       }
       case 'FILTER_CARDS': {
+        this.filter = this.#filterInput.value;
+
         const filter = this.filter.toLowerCase();
+
         this.cards.forEach((card) => {
-          // Note: Moving cards when a filter is applied looks at the hidden attribute
+          if (filter === '') {
+            card.filtered = false;
+            return;
+          }
           card.filtered = !(card.name.toLowerCase().includes(filter) || card.description.toLowerCase().includes(filter));
         });
         return;
@@ -279,7 +285,7 @@ class KanbanColumn extends ReactiveElement {
   }
 
   handleEvent(event: Event) {
-    if (event instanceof KeyboardEvent && event.target === this) {
+    if (event instanceof KeyboardEvent && event.composedPath()[0] === this) {
       if (event.shiftKey && event.code === 'ArrowUp') {
         this.parentElement?.firstElementChild?.insertAdjacentElement('beforebegin', this);
       } else if (event.shiftKey && event.code === 'ArrowDown') {
